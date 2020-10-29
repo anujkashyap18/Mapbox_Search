@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 	CarmenFeature feature;
 	Marker current, dest;
 	LocationManager locationManager;
+	int x = 0;
 	
 	@Override
 	protected void onCreate ( Bundle savedInstanceState ) {
@@ -100,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		
 		placeOptions = PlaceOptions.builder ( );
 		placeOptions.limit ( 10 )
-				.country ( "IN" , "USA" )
+				.country ( "IN" )
 				.backgroundColor ( this.getResources ( ).getColor ( R.color.white ) )
 				.build ( PlaceOptions.MODE_CARDS );
 		
@@ -145,18 +146,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				
 				mapbox.animateCamera ( CameraUpdateFactory.newLatLngZoom ( new LatLng ( origin.latitude ( ) , origin.longitude ( ) ) , 11 ) , 1200 );
 				
-				current = mapbox.addMarker (
-						new MarkerOptions ( ).title ( "Current Location" ).position ( new LatLng ( origin.latitude ( ) , origin.longitude ( ) ) ).icon ( pickup ) );
-				current.getInfoWindow ( );
+				current = new Marker (
+						new MarkerOptions ( ).title ( "Current Location" ).position (
+								new LatLng ( origin.latitude ( ) , origin.longitude ( ) ) ).icon ( pickup ) );
 				
-				dest = new Marker ( new MarkerOptions ( ) );
+				mapbox.updateMarker ( current );
 				
-				dest.remove ( );
-				
-				dest = mapbox.addMarker (
-						new MarkerOptions ( ).title ( "Destination" )
-								.position ( new LatLng ( destination.latitude ( ) , destination.longitude ( ) ) ).icon ( dropoff ) );
-				dest.getInfoWindow ( );
+				if ( x == 0 ) {
+					dest = mapbox.addMarker (
+							new MarkerOptions ( ).title ( "Destination" )
+									.position ( new LatLng ( destination.latitude ( ) , destination.longitude ( ) ) ).icon ( dropoff ) );
+					x++;
+				}
+				else {
+					mapbox.removeMarker ( dest );
+					dest = mapbox.addMarker (
+							new MarkerOptions ( ).title ( "Destination" )
+									.position ( new LatLng ( destination.latitude ( ) , destination.longitude ( ) ) ).icon ( dropoff ) );
+					mapbox.updateMarker ( dest );
+				}
 			} );
 		}
 	}
@@ -184,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 			locationComponent.setLocationComponentEnabled ( true );
 			locationComponent.setCameraMode ( CameraMode.TRACKING );
 			
-			( ( LocationComponent ) locationComponent ).setRenderMode ( RenderMode.COMPASS );
+			locationComponent.setRenderMode ( RenderMode.COMPASS );
 			
 		} );
 	}
@@ -216,8 +224,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 				lineColor ( Color.parseColor ( "#ffbc01" ) )
 		);
 		loadedMapStyle.addLayer ( routeLayer );
-		
-		
 	}
 	
 	private void getRoute ( final MapboxMap mapboxMap , Point origin , Point destination ) {
